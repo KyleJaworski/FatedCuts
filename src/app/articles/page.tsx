@@ -1,60 +1,54 @@
-import { type Metadata } from 'next'
+'use client'
 
-import { Card } from '@/components/Card'
-import { SimpleLayout } from '@/components/SimpleLayout'
-import { type ArticleWithSlug, getAllArticles } from '@/lib/articles'
-import { formatDate } from '@/lib/formatDate'
+import { useEffect, useState } from 'react'
+import { fetchReviews, Review, ReviewStatistics } from '@/api/booksy'
 
-function Article({ article }: { article: ArticleWithSlug }) {
-  return (
-    <article className="md:grid md:grid-cols-4 md:items-baseline">
-      <Card className="md:col-span-3">
-        <Card.Title href={`/articles/${article.slug}`}>
-          {article.title}
-        </Card.Title>
-        <Card.Eyebrow
-          as="time"
-          dateTime={article.date}
-          className="md:hidden"
-          decorate
-        >
-          {formatDate(article.date)}
-        </Card.Eyebrow>
-        <Card.Description>{article.description}</Card.Description>
-        <Card.Cta>Read article</Card.Cta>
-      </Card>
-      <Card.Eyebrow
-        as="time"
-        dateTime={article.date}
-        className="mt-1 hidden md:block"
-      >
-        {formatDate(article.date)}
-      </Card.Eyebrow>
-    </article>
-  )
-}
+function ReviewsComponent() {
+  const [reviews, setReviews] = useState<Review[]>([])
+  const [statistics, setStatistics] = useState<ReviewStatistics | null>(null)
+  const [loading, setLoading] = useState<boolean>(true)
+  const [error, setError] = useState<string | null>(null)
 
-export const metadata: Metadata = {
-  title: 'Articles',
-  description:
-    'All of my long-form thoughts on programming, leadership, product design, and more, collected in chronological order.',
-}
+  useEffect(() => {
+    const loadReviews = async () => {
+      try {
+        setLoading(true)
+        const data = await fetchReviews()
+        if (data) {
+          setReviews(data.data)
+          setStatistics(data.statistics)
+        }
+      } catch (err) {
+        setError('Failed to fetch reviews.')
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadReviews()
+  }, [])
 
-export default async function ArticlesIndex() {
-  let articles = await getAllArticles()
+  if (loading) return <p>Loading reviews...</p>
+  if (error) return <p>Error: {error}</p>
 
   return (
-    <SimpleLayout
-      title="Writing on software design, company building, and the aerospace industry."
-      intro="All of my long-form thoughts on programming, leadership, product design, and more, collected in chronological order."
-    >
-      <div className="md:border-l md:border-zinc-100 md:pl-6 md:dark:border-zinc-700/40">
-        <div className="flex max-w-3xl flex-col space-y-16">
-          {articles.map((article) => (
-            <Article key={article.slug} article={article} />
-          ))}
+    <div>
+      <h2>Reviews</h2>
+      {statistics && (
+        <div>
+          <p>Average Rating: {statistics.average_rating}</p>
+          <p>Total Reviews: {statistics.total_reviews}</p>
         </div>
-      </div>
-    </SimpleLayout>
+      )}
+      <ul>
+        {reviews.map((review) => (
+          <li key={review.id}>
+            <p>Rating: {review.rating}</p>
+            <p>Comment: {review.comment}</p>
+          </li>
+        ))}
+      </ul>
+    </div>
   )
 }
+
+export default ReviewsComponent

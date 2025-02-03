@@ -19,13 +19,17 @@ const BooksyWidget = () => {
         <style>
           {`
             .booksy-widget-container {
-              position: fixed !important;
-              bottom: 20px !important;
-              right: 20px !important;
-              top: auto !important; /* Reset top positioning */
-              left: auto !important; /* Reset left positioning */
-              z-index: 1000 !important;
-            }
+  position: fixed !important;
+  top: 20px !important; /* Position it near the top */
+  left: 50% !important; /* Center horizontally */
+  transform: translateX(-50%) !important; /* Offset by half its width */
+  z-index: 1000 !important;
+  color: black !important;
+
+            a.booksy-business-link{
+           background: none}
+}
+
     
          
           `}
