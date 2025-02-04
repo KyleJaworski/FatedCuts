@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-
+import { useTheme } from 'next-themes'
 import {
   Popover,
   PopoverButton,
@@ -14,8 +14,8 @@ import {
 import clsx from 'clsx'
 
 import { Container } from '@/components/Container'
-import avatarImage from '@/images/photos/avatar.png'
-import BooksyWidget from './BooksyWidget'
+import avatarImage from '@/images/logos/logo.png'
+import { BooksyWidget, MenuComponent } from './BooksyWidget'
 
 function CloseIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
   return (
@@ -38,6 +38,38 @@ function ChevronDownIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
       <path
         d="M1.75 1.75 4 4.25l2.25-2.5"
         fill="none"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+function SunIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      {...props}
+    >
+      <path d="M8 12.25A4.25 4.25 0 0 1 12.25 8v0a4.25 4.25 0 0 1 4.25 4.25v0a4.25 4.25 0 0 1-4.25 4.25v0A4.25 4.25 0 0 1 8 12.25v0Z" />
+      <path
+        d="M12.25 3v1.5M21.5 12.25H20M18.791 18.791l-1.06-1.06M18.791 5.709l-1.06 1.06M12.25 20v1.5M4.5 12.25H3M6.77 6.77 5.709 5.709M6.77 17.73l-1.061 1.061"
+        fill="none"
+      />
+    </svg>
+  )
+}
+
+function MoonIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" {...props}>
+      <path
+        d="M17.25 16.22a6.937 6.937 0 0 1-9.47-9.47 7.451 7.451 0 1 0 9.47 9.47ZM12.75 7C17 7 17 2.75 17 2.75S17 7 21.25 7C17 7 17 11.25 17 11.25S17 7 12.75 7Z"
         strokeWidth="1.5"
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -91,8 +123,7 @@ function MobileNavigation(
         <nav className="mt-6">
           <ul className="-my-2 divide-y divide-zinc-100 text-base text-zinc-800 dark:divide-zinc-100/5 dark:text-zinc-300">
             <MobileNavItem href="/about">About</MobileNavItem>
-            {/*<MobileNavItem href="/articles">Services</MobileNavItem>*/}
-            <MobileNavItem href="/projects">Booking</MobileNavItem>
+            <MobileNavItem href="/articles">Booking</MobileNavItem>
           </ul>
         </nav>
       </PopoverPanel>
@@ -103,21 +134,19 @@ function MobileNavigation(
 function NavItem({
   href,
   children,
+  onClick,
 }: {
   href: string
   children: React.ReactNode
+  onClick?: (event: React.MouseEvent<HTMLAnchorElement>) => void
 }) {
   let isActive = usePathname() === href
-
-  const isBooksy = href.includes('booksy.com/widget') // Check if it's the Booksy link
 
   return (
     <li>
       <Link
         href={href}
-        {...(isBooksy
-          ? { target: '_blank', rel: 'noopener noreferrer' } // Open in new tab
-          : {})}
+        onClick={onClick}
         className={clsx(
           'relative block px-3 py-2 transition',
           isActive
@@ -126,19 +155,56 @@ function NavItem({
         )}
       >
         {children}
-        {isActive && <span />}
+        {isActive && (
+          <span className="absolute inset-x-1 -bottom-px h-px bg-linear-to-r from-teal-500/0 via-teal-500/40 to-teal-500/0 dark:from-teal-400/0 dark:via-teal-400/40 dark:to-teal-400/0" />
+        )}
       </Link>
     </li>
   )
 }
 
 function DesktopNavigation(props: React.ComponentPropsWithoutRef<'nav'>) {
+  const [isBooksyLoaded, setIsBooksyLoaded] = useState(false) // ✅ Track if Booksy is ready
+
+  useEffect(() => {
+    // Function to check if the Booksy widget exists
+    const checkBooksyLoaded = () => {
+      const booksyButton = document.querySelector('.booksy-widget-button')
+      if (booksyButton) {
+        setIsBooksyLoaded(true) // ✅ Show Booking when widget loads
+      } else {
+        setTimeout(checkBooksyLoaded, 500) // 🔄 Retry every 500ms if not loaded
+      }
+    }
+
+    checkBooksyLoaded()
+  }, [])
+
+  const openBooksyWidget = (event: React.MouseEvent) => {
+    event.preventDefault() // Prevent default link behavior
+
+    const tryClick = () => {
+      const booksyButton = document.querySelector(
+        '.booksy-widget-button',
+      ) as HTMLElement | null
+      if (booksyButton) {
+        booksyButton.click() // ✅ Simulate click
+      } else {
+        console.warn('Booksy widget not found yet, retrying...')
+        setTimeout(tryClick, 500) // 🔄 Retry if widget isn't loaded yet
+      }
+    }
+
+    tryClick()
+  }
+
   return (
     <nav {...props}>
       <ul className="flex rounded-full bg-white/90 px-3 text-sm font-medium text-zinc-800 ring-1 shadow-lg shadow-zinc-800/5 ring-zinc-900/5 backdrop-blur-sm dark:bg-zinc-800/90 dark:text-zinc-200 dark:ring-white/10">
         <NavItem href="/about">About</NavItem>
-        {/*<NavItem href="/articles">Services</NavItem>*/}
-        <NavItem href="/projects">Booking</NavItem>
+        <NavItem href="#" onClick={openBooksyWidget}>
+          Booking
+        </NavItem>
       </ul>
     </nav>
   )
@@ -371,9 +437,13 @@ export function Header() {
                 )}
               </div>
               <div className="flex flex-1 justify-end md:justify-center">
+                <MobileNavigation className="pointer-events-auto md:hidden" />
+                <DesktopNavigation className="pointer-events-auto hidden md:block" />
                 <BooksyWidget />
               </div>
-              <div className="flex justify-end md:flex-1"></div>
+              <div className="flex justify-end md:flex-1">
+                <div className="pointer-events-auto"></div>
+              </div>
             </div>
           </Container>
         </div>

@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "export": "next build && output: export",
+    "export": "next build && next export",
     "deploy": "gh-pages -d out"
   },
   "homepage": "https://KyleJaworski.github.io/FatedCuts",

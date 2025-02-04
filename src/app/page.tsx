@@ -1,4 +1,4 @@
-import Image, { type ImageProps } from 'next/image'
+import Image from 'next/image'
 import Link from 'next/link'
 import clsx from 'clsx'
 
@@ -11,7 +11,6 @@ import image2 from '@/images/photos/image-2.png'
 import image3 from '@/images/photos/image-3.png'
 import image4 from '@/images/photos/image-4.png'
 import image5 from '@/images/photos/image-5.png'
-import BooksyWidget from '@/components/BooksyWidget'
 
 function MailIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
   return (
