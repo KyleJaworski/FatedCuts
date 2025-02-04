@@ -1,3 +1,5 @@
+'use client'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import clsx from 'clsx'
@@ -79,28 +81,96 @@ function Newsletter() {
 }
 
 function Photos() {
-  let rotations = ['rotate-2', '-rotate-2', 'rotate-2', 'rotate-2', '-rotate-2']
+  const images = [image1, image2, image3, image4, image5]
+  const rotations = [
+    'rotate-2',
+    '-rotate-2',
+    'rotate-2',
+    'rotate-2',
+    '-rotate-2',
+  ]
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const [isSmallScreen, setIsSmallScreen] = useState(false)
+
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsSmallScreen(window.innerWidth < 640)
+    }
+
+    checkScreenSize()
+    window.addEventListener('resize', checkScreenSize)
+
+    return () => window.removeEventListener('resize', checkScreenSize)
+  }, [])
+
+  // Function to move to the next image
+  const nextSlide = () => {
+    setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length)
+  }
+
+  // Function to move to the previous image
+  const prevSlide = () => {
+    setCurrentIndex(
+      (prevIndex) => (prevIndex - 1 + images.length) % images.length,
+    )
+  }
 
   return (
     <div className="mt-16 sm:mt-20">
-      <div className="-my-4 flex justify-center gap-5 overflow-hidden py-4 sm:gap-8">
-        {[image1, image2, image3, image4, image5].map((image, imageIndex) => (
+      {/* Small screen carousel */}
+      {isSmallScreen ? (
+        <div className="relative mx-auto w-full max-w-sm overflow-hidden">
+          {/* Images wrapper with transition */}
           <div
-            key={image.src}
-            className={clsx(
-              'relative aspect-9/10 w-44 flex-none overflow-hidden rounded-xl bg-zinc-100 sm:w-72 sm:rounded-2xl dark:bg-zinc-800',
-              rotations[imageIndex % rotations.length],
-            )}
+            className="flex transition-transform duration-300 ease-in-out"
+            style={{ transform: `translateX(-${currentIndex * 100}%)` }}
           >
-            <Image
-              src={image}
-              alt=""
-              sizes="(min-width: 640px) 18rem, 11rem"
-              className="absolute inset-0 h-full w-full object-cover"
-            />
+            {images.map((image, index) => (
+              <div key={index} className="min-w-full">
+                <Image
+                  src={image}
+                  alt={`Slide ${index + 1}`}
+                  className="h-auto w-full rounded-xl object-cover"
+                />
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+
+          {/* Navigation buttons */}
+          <button
+            onClick={prevSlide}
+            className="bg-opacity-50 absolute top-1/2 left-2 -translate-y-1/2 transform rounded-full bg-black p-2 text-white"
+          >
+            ❮
+          </button>
+          <button
+            onClick={nextSlide}
+            className="bg-opacity-50 absolute top-1/2 right-2 -translate-y-1/2 transform rounded-full bg-black p-2 text-white"
+          >
+            ❯
+          </button>
+        </div>
+      ) : (
+        // Medium and large screen layout with rotation
+        <div className="flex justify-center gap-5 overflow-hidden py-4 sm:gap-8">
+          {images.map((image, imageIndex) => (
+            <div
+              key={image.src}
+              className={clsx(
+                'relative aspect-9/10 w-44 flex-none overflow-hidden rounded-xl bg-zinc-100 sm:w-72 sm:rounded-2xl dark:bg-zinc-800',
+                rotations[imageIndex % rotations.length], // Apply rotation on medium and large screens
+              )}
+            >
+              <Image
+                src={image}
+                alt=""
+                sizes="(min-width: 640px) 18rem, 11rem"
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
